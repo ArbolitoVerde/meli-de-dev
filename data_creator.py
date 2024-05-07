@@ -4,7 +4,7 @@ from pandas import DataFrame
 
 
 class DataCreator:
-    #Variables globales
+
     SCHEMA = {
         'date': 'datetime64[ns]',
         'user_id': 'int32',
@@ -23,8 +23,17 @@ class DataCreator:
         self.__pays_path = pays_path
         self.__process_weeks = process_weeks
 
-    #Load a json or csv file to DataFrame
+
     def __read_file(self, file_path: str) -> DataFrame:
+        """Hace lectura de los archivos inputs necesarios para calcular el dataset final.
+
+        Args:
+            file_path (str): localización del archivo a leer.
+
+        Returns:
+            DataFrame: se transforma el input ya sea json o csv a un dataframe.
+        """
+
         data = []
         if file_path.endswith('.json'):
             try: 
@@ -51,14 +60,35 @@ class DataCreator:
         else:
             print("Wrong extension file, only reading json or csv files")
 
+
     def __validate_key_fields(self, df: DataFrame) -> DataFrame:
+        """Valida la existencia de duplicidad de la llave de los df de prints y taps, si existen, son eliminados
+            retornando un dataset sin ellos.
+
+        Args:
+            df (DataFrame): Dataframe a validar.
+
+        Returns:
+            DataFrame: Dataframe sin duplicados.
+        """
         duplicates = df.groupby(['date', 'user_id', 'position']).filter(lambda x: len(x) > 1).value_counts()
         if len(duplicates) > 0:
             return df.drop_duplicates(keep='last').reset_index()
         else:
             return df
         
+
     def __create_join_table(self, prints: DataFrame, taps: DataFrame, pays: DataFrame) -> DataFrame:
+        """Genera el join de las tres tablas involucradas en el proceso.
+
+        Args:
+            prints (DataFrame): prints data
+            taps (DataFrame): taps data
+            pays (DataFrame): pays data
+
+        Returns:
+            DataFrame: datos cruzados en función del df input prints.
+        """
         prints = self.__validate_key_fields(prints)
         taps = self.__validate_key_fields(taps)
         
@@ -72,7 +102,17 @@ class DataCreator:
         joined_data['row_num_week'] = joined_data['year_week_id'].rank(method ='dense',ascending=True).astype('int32')
         return joined_data
     
+    
     def __create_ouput_dataset(self, df: DataFrame, wk: int) -> DataFrame:
+        """Genera la estructura con los datos solicitados como output
+
+        Args:
+            df (DataFrame): dataset sobre el cual se van a calcular los KPIs
+            wk (int): cantidad de semanas móviles que se consideraran para calcular los KPIs
+
+        Returns:
+            DataFrame: df con la estructura y datos requeridos como output
+        """
         max_week = df['row_num_week'].max() 
         early_weeks = df.query(f'row_num_week >= {max_week}-{wk} and row_num_week < {max_week}')
         agg_early_weeks = early_weeks.groupby(['user_id','value_prop_print']).aggregate({'value_prop_print':'count', 'click_flag':'sum','total':['count','sum']})
@@ -84,8 +124,14 @@ class DataCreator:
         output = tmp_output[['date', 'user_id', 'position', 'value_prop_print', 'click_flag', f'views_last{wk}_weeks', f'clicks_last{wk}_weeks', f'pays_last{wk}_weeks', f'import_pay_last{wk}_weeks']].fillna(0)
         output = output.astype(self.SCHEMA)
         return output
-    
-    def get_output_dataset(self):
+
+
+    def get_output_dataset(self) -> DataFrame:
+        """Función que gestiona el llamado a los métodos privados para generar output.
+
+        Returns:
+            DataFrame: df con la estructura y datos requeridos como output
+        """
         prints = self.__read_file(self.__prints_path)
         taps = self.__read_file(self.__taps_path)
         pays = self.__read_file(self.__pays_path)
@@ -93,5 +139,3 @@ class DataCreator:
         join_df = self.__create_join_table(prints, taps, pays)
         dataset = self.__create_ouput_dataset(join_df, self.__process_weeks)
         return dataset
-
-    
