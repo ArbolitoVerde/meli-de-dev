@@ -49,7 +49,7 @@ class DataCreator:
                 print("Something went wrong")
         elif file_path.endswith('.csv'):
             try: 
-                df = pd.read_csv("pays.csv")
+                df = pd.read_csv(file_path)
                 df = df.groupby(['pay_date','user_id','value_prop'])['total'].sum()
                 return df
             except FileNotFoundError as fnf_error:
