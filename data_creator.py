@@ -5,23 +5,22 @@ from pandas import DataFrame
 
 class DataCreator:
 
-    SCHEMA = {
-        'date': 'datetime64[ns]',
-        'user_id': 'int32',
-        'position': 'int32',
-        'value_prop_print': 'str',
-        'click_flag': 'int32',
-        'views_last3_weeks': 'int32',
-        'clicks_last3_weeks': 'int32',
-        'pays_last3_weeks': 'int32',
-        'import_pay_last3_weeks': 'float64'
-    }
-
     def __init__(self, prints_path: str, taps_path: str, pays_path: str, process_weeks: int) -> None:
         self.__prints_path = prints_path
         self.__taps_path = taps_path
         self.__pays_path = pays_path
         self.__process_weeks = process_weeks
+        self.__schema = {
+                        'date': 'datetime64[ns]',
+                        'user_id': 'int32',
+                        'position': 'int32',
+                        'value_prop_print': 'str',
+                        'click_flag': 'int32',
+                        f'views_last{process_weeks}_weeks': 'int32',
+                        f'clicks_last{process_weeks}_weeks': 'int32',
+                        f'pays_last{process_weeks}_weeks': 'int32',
+                        f'import_pay_last{process_weeks}_weeks': 'float64'
+                    }
 
 
     def __read_file(self, file_path: str) -> DataFrame:
@@ -114,15 +113,14 @@ class DataCreator:
             DataFrame: df con la estructura y datos requeridos como output
         """
         max_week = df['row_num_week'].max() 
-        early_weeks = df.query(f'row_num_week >= {max_week}-{wk} and row_num_week < {max_week}')
+        early_weeks = df[(df['row_num_week'] >= max_week-wk) & (df['row_num_week'] < max_week)] 
         agg_early_weeks = early_weeks.groupby(['user_id','value_prop_print']).aggregate({'value_prop_print':'count', 'click_flag':'sum','total':['count','sum']})
         agg_early_weeks = pd.DataFrame(agg_early_weeks.to_records())
         agg_early_weeks.columns = ['user_id', 'value_prop_print', f'views_last{wk}_weeks', f'clicks_last{wk}_weeks', f'pays_last{wk}_weeks', f'import_pay_last{wk}_weeks']
-
-        last_week = df.query(f'row_num_week == {max_week}')
+        last_week = df[df['row_num_week'] == max_week]
         tmp_output = pd.merge(last_week, agg_early_weeks, on=['user_id', 'value_prop_print'], how='left')
         output = tmp_output[['date', 'user_id', 'position', 'value_prop_print', 'click_flag', f'views_last{wk}_weeks', f'clicks_last{wk}_weeks', f'pays_last{wk}_weeks', f'import_pay_last{wk}_weeks']].fillna(0)
-        output = output.astype(self.SCHEMA)
+        output = output.astype(self.__schema)
         return output
 
 

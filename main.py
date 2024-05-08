@@ -1,8 +1,8 @@
 from data_creator import DataCreator
 
-PRINTS_PATH = '/Users/seba/Documents/Data Engineering Development/meli-de-dev/prints.json'
-TAPS_PATH = '/Users/seba/Documents/Data Engineering Development/meli-de-dev/taps.json'
-PAYS_PATH = '/Users/seba/Documents/Data Engineering Development/meli-de-dev/pays.csv'
+PRINTS_PATH = './prints.json'
+TAPS_PATH = './taps.json'
+PAYS_PATH = './pays.csv'
 PROCESS_WEEKS = 3
 
 if __name__ == '__main__':
