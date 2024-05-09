@@ -20,5 +20,5 @@ Como ejemplo para el caso de ejecutarlo por terminal, ejecutar los siguientes co
 Se disponibiliza un archivo Dockerfile para ejecutar el código en un contenedor, y para ejecutarlo basta con los siguientes
 comandos en el mismo directorio del repo:
 
-- docker build -t meli-dev
+- docker build -t meli-dev .
 - docker run meli-dev
