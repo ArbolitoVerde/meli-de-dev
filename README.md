@@ -11,14 +11,14 @@ casos es necesario habilitar un virtual environment, en función del archivo req
 
 Como ejemplo para el caso de ejecutarlo por terminal, ejecutar los siguientes comandos en el directorio del repo:
 
-python3 -m venv myenv
-source myenv/bin/activate
-pip install --no-cache-dir --upgrade -r ./requirements.txt
-python3 ./app/main.py
+- python3 -m venv myenv
+- source myenv/bin/activate
+- pip install --no-cache-dir --upgrade -r ./requirements.txt
+- python3 ./app/main.py
 
 # Ejecución docker
 Se disponibiliza un archivo Dockerfile para ejecutar el código en un contenedor, y para ejecutarlo basta con los siguientes
 comandos en el mismo directorio del repo:
 
-docker build -t meli-dev
-docker run meli-dev
+- docker build -t meli-dev
+- docker run meli-dev
